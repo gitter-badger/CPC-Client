@@ -3,6 +3,8 @@ package io.cpc.client.protocol;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.ConnectException;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.cpc.client.Application;
 import io.cpc.client.logging.Logger;
@@ -11,10 +13,16 @@ import io.cpc.client.protocol.tcp.TCPConnection;
 public class ServerManager {
     private static final Logger LOG = new Logger("Server Manager");
     private static TCPConnection connectedServer;
+    public static final TCPConnection[] DEFAULT_SERVERS = new TCPConnection[]{
+            new TCPConnection("eu.cpc.relay", 25589),
+            new TCPConnection("na.cpc.relay", 25589),
+            new TCPConnection("oc.cpc.relay", 25589),
+    };
 
     public static TCPConnection getConnectedServer() {
         return connectedServer;
     }
+
 
     /**
      * Connect to the specified server and return the remote opened port
@@ -23,17 +31,17 @@ public class ServerManager {
      * @return port that remote server opened to receive incoming connection
      */
     public static int connectTo(TCPConnection toConnect) {
-        LOG.info("Connecting to a relay server (" + toConnect.getServerIP() + ") on local port " + toConnect.getLocalPort());
+        LOG.info("Connecting to a relay server (" + toConnect.getServerIP() + ") on local port "
+                + toConnect.getLocalPort());
         try {
             int remotePort = toConnect.connect();
-            LOG.info("Connected to relay server "
-                    + toConnect.getServerIP()
-                    + " on port "
+            LOG.info("Connected to relay server " + toConnect.getServerIP() + " on port "
                     + toConnect.getServerUsedPort() + "!");
             connectedServer = toConnect;
             return remotePort;
         } catch (ConnectException e) {
-            LOG.severe("Cannot connect to " + toConnect.getServerIP() + ":" + toConnect.getServerUsedPort() + ", aborting...");
+            LOG.severe("Cannot connect to " + toConnect.getServerIP() + ":" + toConnect.getServerUsedPort()
+                    + ", aborting...");
             Application.quit(0);
         } catch (IOException e) {
             e.printStackTrace();
@@ -56,8 +64,7 @@ public class ServerManager {
                     int available;
                     do {
                         available = in.available();
-                    }
-                    while (available < 4);
+                    } while (available < 4);
                     LOG.info("A user connected!");
                     int portToConnect;
                     portToConnect = in.readInt();
@@ -68,11 +75,9 @@ public class ServerManager {
                 }
             }
 
-        }
-        );
+        });
         requestThread.setName("Request Wait");
         requestThread.start();
-
 
     }
 

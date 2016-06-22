@@ -1,6 +1,5 @@
 package io.cpc.client.protocol.tcp;
 
-
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -21,7 +20,7 @@ public class TCPConnection {
     private int serverPort = 0;
     private int serverUsedPort;
     private Socket serviceConnection;
-    private int localPort;
+    private int localPort = 0;
     private List<Socket> openedSockets = new ArrayList<>();
 
     /**
@@ -31,11 +30,12 @@ public class TCPConnection {
      * @param remotePort the remote host port
      * @param localPort  the local port to share. Can be changed.
      * @see TCPConnection#TCPConnection(URL, int)
+     * @see TCPConnection#TCPConnection(String, int)
      */
     public TCPConnection(String serverIP, int remotePort, int localPort) {
-        this.serverIP = serverIP;
-        this.serverPort = remotePort;
-        this.localPort = localPort;
+        setServerIP(serverIP);
+        setServerPort(remotePort);
+        setLocalPort(localPort);
     }
 
     /**
@@ -44,12 +44,31 @@ public class TCPConnection {
      * @param serverIPANDPort {@link URL} representing ip and port to connect
      * @param localPort       the local port to share. Can be changed.
      * @see TCPConnection#TCPConnection(String, int, int)
+     * @see TCPConnection#TCPConnection(String, int)
      */
     public TCPConnection(URL serverIPANDPort, int localPort) {
         this(serverIPANDPort.getHost(), serverIPANDPort.getPort(), localPort);
     }
 
+    /**
+     * Initialize a connection to the specified relay server
+     *
+     * @param serverIP   the remote host ip
+     * @param remotePort the remote host port
+     * @see TCPConnection#TCPConnection(URL, int)
+     * @see TCPConnection#TCPConnection(String, int, int)
+     */
+    public TCPConnection(String serverIP, int remotePort) {
+        setServerIP(serverIP);
+        setServerPort(remotePort);
+    }
+
     public TCPConnection() {
+    }
+
+    public static void validatePort(int port) {
+        if (port < 1 || port > 65535)
+            throw new IllegalArgumentException("Not valid port number");
     }
 
     /**
@@ -60,7 +79,8 @@ public class TCPConnection {
     }
 
     public void setServerIP(String serverIP) {
-        if (this.serverIP != null) throw new IllegalStateException("Server ip already set");
+        if (this.serverIP != null)
+            throw new IllegalStateException("Server ip already set");
         this.serverIP = serverIP;
     }
 
@@ -72,7 +92,9 @@ public class TCPConnection {
     }
 
     public void setServerPort(int serverPort) {
-        if (this.serverPort != 0) throw new IllegalStateException("Server port already set");
+        if (this.serverPort != 0)
+            throw new IllegalStateException("Server port already set");
+        validatePort(serverPort);
         this.serverPort = serverPort;
     }
 
@@ -93,8 +115,7 @@ public class TCPConnection {
      * @param localPort an int from 1 to 65535. Cannot be null.
      */
     public void setLocalPort(int localPort) {
-        if (localPort < 1 || localPort > 65535)
-            throw new IllegalArgumentException("Not valid port number");
+        validatePort(localPort);
         this.localPort = localPort;
     }
 
@@ -112,8 +133,10 @@ public class TCPConnection {
      * @throws IllegalStateException if already connected
      */
     public int connect() throws IOException {
-        if (connected) throw new IllegalStateException("Already connected");
-
+        if (connected)
+            throw new IllegalStateException("Already connected");
+        if (localPort == 0)
+            throw new IllegalStateException("Local port not set");
         serviceConnection = new Socket(serverIP, serverPort);
 
         DataInputStream in = new DataInputStream(serviceConnection.getInputStream());
@@ -122,8 +145,7 @@ public class TCPConnection {
         int available;
         do {
             available = serviceConnection.getInputStream().available();
-        }
-        while (available < 4);
+        } while (available < 4);
 
         // Read port
         serverUsedPort = in.readInt();
@@ -147,7 +169,6 @@ public class TCPConnection {
         }
         Socket finalConnectionToRelay = connectionToRelay;
         Socket finalConnectionToLocal = connectionToLocal;
-
 
         // Start data streaming
         new DoubleDirectionExchanger(finalConnectionToLocal, finalConnectionToRelay).start();
