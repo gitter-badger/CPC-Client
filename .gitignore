@@ -3,8 +3,13 @@ plugins/
 logs/
 
 # IntelliJ IDEA
-.idea/
+.idea/**/*.*
 *.iml
+
+# Eclipse
+.classpath
+.settings
+.project
 
 # Maven
 target/
