@@ -37,7 +37,8 @@ public class Logger {
             fileWriter = new PrintWriter(new FileWriter(logFile));
             initialized = true;
 
-        } catch (IOException ignore) {
+        } catch (IOException e) {
+            System.err.println("Cannot save log to file!");
         }
     }
 

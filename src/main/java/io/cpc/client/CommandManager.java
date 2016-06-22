@@ -101,10 +101,10 @@ public class CommandManager {
             System.out.println(plugin.getClass().getSimpleName() + ":\n");
             for (Command command : registeredCommands.get(plugin)) {
                 log.raw("  " + command.getClass().getSimpleName() + ":\n");
-                log.raw("    Description: " + command.getDescription() + "\n");
+                log.raw("    Description: "+command.getDescription()+"\n");
                 log.raw("    Aliases:\n");
                 for (String alias : command.getAliases()) {
-                    System.out.println("      - " + alias);
+                    System.out.println("      - "+alias);
                 }
             }
         }
