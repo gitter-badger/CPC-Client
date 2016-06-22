@@ -1,0 +1,10 @@
+# Generated folders
+plugins/
+logs/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Maven
+target/
