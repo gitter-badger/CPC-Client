@@ -1,8 +1,9 @@
 package io.cpc.client;
 
-
+import java.awt.*;
 import java.io.File;
 
+import io.cpc.client.gui.MainWindow;
 import io.cpc.client.logging.Logger;
 import io.cpc.client.plugin.PluginManager;
 import io.cpc.client.protocol.ServerManager;
@@ -11,21 +12,37 @@ import io.cpc.client.protocol.tcp.TCPConnection;
 public class Application {
     private static final String VERSION = "0.0.1";
     private static final Logger log = new Logger("Main");
+    public static boolean startGUI = true;
     private static boolean debug = false;
     private static TCPConnection def = new TCPConnection();
     private static boolean autoConnect = false;
 
     public static void main(String[] args) {
-        log.info("Started Close Ports Connector v." + VERSION);
+
         useArgs(args);
+        // See if the app is started from cli or from gui
+        if (!GraphicsEnvironment.isHeadless() && startGUI) {
+            MainWindow.wrapper();
+        } else if (System.console() != null) {
+            CommandManager.start();
+            log.info("Use 'help' for a list of commands");
+        } else {
+            log.severe("FATAL ERROR: Could not found a console or a graphical environment");
+            quit(1);
+        }
+
+        log.info("Started Close Ports Connector v." + VERSION);
+
+        // Scan for plugins
         PluginManager.scanForPlugin();
 
         // If autoConnect == true, start server
-        if (autoConnect) ServerManager.initialize(def);
+        if (autoConnect)
+            ServerManager.initialize(def);
 
         // Start command manager
-        CommandManager.start();
-        log.info("Use 'help' for a list of commands");
+
+
     }
 
     public static void quit(int state) {
@@ -44,7 +61,8 @@ public class Application {
 
     private static void useArgs(String[] args) {
 
-        if (args.length < 3) return;
+        if (args.length < 3)
+            return;
         for (String arg : args) {
             if (arg.matches("-\\w+=\\w+")) {
                 if (arg.startsWith("-")) {
@@ -61,6 +79,8 @@ public class Application {
 
     private static void identifyArg(String command, String value) {
         switch (command) {
+            case "noGui":
+                startGUI = false;
             case "pluginFolder":
                 PluginManager.scanForPlugin(new File(value));
                 break;
