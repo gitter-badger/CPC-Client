@@ -40,7 +40,7 @@ public class ServerManager {
             connectedServer = toConnect;
             return remotePort;
         } catch (ConnectException e) {
-            LOG.severe("Cannot connect to " + toConnect.getServerIP() + ":" + toConnect.getServerUsedPort()
+            LOG.severe("Cannot connect to " + toConnect.getServerIP() + ":" + toConnect.getServerPort()
                     + ", aborting...");
             Application.quit(0);
         } catch (IOException e) {

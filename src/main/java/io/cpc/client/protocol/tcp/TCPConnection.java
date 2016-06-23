@@ -29,7 +29,6 @@ public class TCPConnection {
      * @param serverIP   the remote host ip
      * @param remotePort the remote host port
      * @param localPort  the local port to share. Can be changed.
-     * @see TCPConnection#TCPConnection(URL, int)
      * @see TCPConnection#TCPConnection(String, int)
      */
     public TCPConnection(String serverIP, int remotePort, int localPort) {
@@ -39,23 +38,10 @@ public class TCPConnection {
     }
 
     /**
-     * Initialize a connection to the specified url
-     *
-     * @param serverIPANDPort {@link URL} representing ip and port to connect
-     * @param localPort       the local port to share. Can be changed.
-     * @see TCPConnection#TCPConnection(String, int, int)
-     * @see TCPConnection#TCPConnection(String, int)
-     */
-    public TCPConnection(URL serverIPANDPort, int localPort) {
-        this(serverIPANDPort.getHost(), serverIPANDPort.getPort(), localPort);
-    }
-
-    /**
      * Initialize a connection to the specified relay server
      *
      * @param serverIP   the remote host ip
      * @param remotePort the remote host port
-     * @see TCPConnection#TCPConnection(URL, int)
      * @see TCPConnection#TCPConnection(String, int, int)
      */
     public TCPConnection(String serverIP, int remotePort) {
@@ -143,8 +129,11 @@ public class TCPConnection {
 
         // Wait for port message
         int available;
+        int waiting = 0;
         do {
+            if (waiting > 2000) throw new IOException("Cannot connect to server");
             available = serviceConnection.getInputStream().available();
+            waiting++;
         } while (available < 4);
 
         // Read port
